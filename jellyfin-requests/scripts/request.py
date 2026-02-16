@@ -15,7 +15,7 @@ from typing import Annotated, Any, Literal
 from urllib.parse import quote, urlencode
 
 import requests
-from pydantic import AliasChoices, BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, ValidationError
 from requests.auth import AuthBase
 
 MediaType = Literal["movie", "tv"]
@@ -39,15 +39,11 @@ class MediaResult(BaseModel):
     ]
     overview: str
     release_date: Annotated[
-        date | None, Field(default=None, validation_alias=AliasChoices("releaseDate", "firstAirDate"))
+        date,
+        Field(
+            default=None, validation_alias=AliasChoices("releaseDate", "firstAirDate")
+        ),
     ]
-
-    @field_validator("release_date", mode="before")
-    @classmethod
-    def empty_str_to_none(cls, v: Any) -> Any:
-        if v == "":
-            return None
-        return v
 
 
 class CommandHandler:
@@ -75,13 +71,17 @@ class CommandHandler:
             auth=self.auth,
         )
 
-        results = res.json()["results"]
+        results = []
+        for result in res.json()["results"]:
+            if len(results) >= 5:
+                break
 
-        return [
-            MediaResult.model_validate(result)
-            for result in results
-            if result["mediaType"] in ("movie", "tv")
-            ][:5]
+            try:
+                results.append(MediaResult.model_validate(result))
+            except ValidationError:
+                pass
+
+        return results
 
     def add_request(
         self, media_type: MediaType, id: int, seasons: list[str] | None = None
