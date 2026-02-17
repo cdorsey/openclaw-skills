@@ -18,3 +18,12 @@ Steps and best practices for adding a recipe to the Obsidian Vault
    using the local file path. Avoid directly using remote URLs in the new note. If there is no URL or no suitable image can be found, omit it from the note
 5. Using this information, construct the note and save it to the vault's Recipes folder. The folder name may not match exactly, but it will be at the root level
    of the vault. The file name should be the name of the dish.
+
+## Frontmatter Notes
+
+- The `tags` field must be a YAML list (not comma-separated). Each tag should include the `#` prefix and contain no whitespace. Example:
+  ```yaml
+  tags:
+    - "#slow-cooker"
+    - "#dinner"
+  ```
