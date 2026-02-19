@@ -4,6 +4,7 @@
 # dependencies = [
 #     "pydantic>=2.12.5",
 #     "requests>=2.32.5",
+#     "toon-format>=0.9.0b1"
 # ]
 # ///
 
@@ -15,6 +16,7 @@ from typing import Annotated, Any, Literal
 from urllib.parse import quote, urlencode
 
 import requests
+import toon_format as toon
 from pydantic import AliasChoices, BaseModel, Field, ValidationError
 from requests.auth import AuthBase
 
@@ -135,8 +137,8 @@ def main():
 
     match args.command:
         case "search":
-            for media in handler.search_media(args.query):
-                print(media.model_dump_json())
+            results = [media.model_dump() for media in handler.search_media(args.query)]
+            print(toon.encode({"results": results}))
         case "add_movie":
             print(handler.add_request("movie", args.media_id))
         case "add_tv":
