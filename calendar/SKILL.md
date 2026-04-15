@@ -29,7 +29,7 @@ _Note: Examples use the `default` calendar of user `johndoe`_
 Get calendar events in a time range
 
 ```bash
-curl -X REPORT -H "Depth: 1" -H "Prefer: return-minimal" -H "Authorization: Basic $DAV_AUTH" -d '
+curl -X REPORT -H "Content-Type: text/calendar; charset=utf-8" -H "Depth: 1" -H "Prefer: return-minimal" -H "Authorization: Basic $DAV_AUTH" -d '
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
     <d:prop>
         <d:getetag />
