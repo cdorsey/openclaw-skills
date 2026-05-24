@@ -58,7 +58,15 @@ class CalendarEvent(BaseModel):
         )
 
 
-def safe_date_parse(date_str: str, strict: bool = True) -> date | datetime | None:
+def safe_date_parse(
+    date_str: str | None, strict: bool = True
+) -> date | datetime | None:
+    if date_str is None:
+        if strict:
+            raise ValueError("Date string cannot be None")
+
+        return None
+
     try:
         return date.fromisoformat(date_str)
     except ValueError:
@@ -174,12 +182,12 @@ if __name__ == "__main__":
     )
     get_events_subparser.add_argument(
         "--start",
-        type=date.fromisoformat,
+        type=str,
         help="The start date to search for events from (inclusive)",
     )
     get_events_subparser.add_argument(
         "--end",
-        type=date.fromisoformat,
+        type=str,
         help="The end date to search for events until (inclusive)",
     )
 
