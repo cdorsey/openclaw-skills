@@ -6,7 +6,7 @@ metadata:
     "openclaw":
       {
         "emoji": "📅",
-        "requires": { "bins": ["uv", "curl"], "env": ["DAV_AUTH", "DAV_URL"] },
+        "requires": { "bins": ["uv"], "env": ["DAV_AUTH", "DAV_URL"] },
         "primaryEnv": "DAV_AUTH",
       },
   }
@@ -14,69 +14,38 @@ metadata:
 
 # Calendar
 
-Use the CalDAV specification to interact with the user's calendar upon request. Commands should be executed using `curl`. If a new file name is needed (i.e. creating a new event), use the bundled script.
+Interact with the user's calendar using the CalDAV specification. All calendar operations are performed using the bundled `cal.py` script.
 
-Before executing any actions, get the user's DAV username and preferred calendar. If this is not in your memory, prompt the user and store them for later use.
-
-## Security
-
-Avoid printing the auth token or URL directly, always use `$DAV_AUTH` and `$DAV_URL`, respectively.
+Calendar configuration is stored externally and loaded at runtime. No user information is required when running the script.
 
 ## Examples
-
-_Note: Examples use the `default` calendar of user `johndoe`_
 
 Get calendar events in a time range
 
 ```bash
-curl -X REPORT -H "Content-Type: text/calendar; charset=utf-8" -H "Depth: 1" -H "Prefer: return-minimal" -H "Authorization: Basic $DAV_AUTH" -d '
-<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
-    <d:prop>
-        <d:getetag />
-        <c:calendar-data />
-    </d:prop>
-    <c:filter>
-        <c:comp-filter name="VCALENDAR">
-            <c:comp-filter name="VEVENT">
-                <c:time-range start="20250101T000000Z" end="20251231T235959Z" />
-            </c:comp-filter>
-        </c:comp-filter>
-    </c:filter>
-</c:calendar-query>
-' $DAV_URL/calendars/johndoe/default
+uv run {baseDir}/scripts/cal.py get_events --start 2025-01-01 --end 2025-12-31
 ```
 
 Get details of a single event
 
 ```bash
-curl -H "Depth: 1" -H "Prefer: return-minimal" -H "Authorization: Basic $DAV_AUTH" $DAV_URL/calendars/johndoe/default/633bff89b1de69fe40cda18126274fec.ics
+uv run {baseDir}/scripts/cal.py get_event 019e5ba4-8387-7041-bcd0-dea0d6fce429
 ```
 
-Create an event
+Create an event (without timezone information, defaults to user's local timezone)
 
 ```bash
-uv run {baseDir}/scripts/generate_filename.py
-# 633bff89b1de69fe40cda18126274fec.ics
-
-curl -X PUT -H "Content-Type: text/calendar; charset=utf-8" -H "Authorization: Basic $DAV_AUTH" -d '
-BEGIN:VCALENDAR
-....
-END:VCALENDAR
-' $DAV_URL/calendars/johndoe/default/633bff89b1de69fe40cda18126274fec.ics
+uv run {baseDir}/scripts/cal.py create_event "Team Meeting" --start 2025-06-15T09:00:00 --end 2025-06-15T10:00:00 --location "Conference Room"
 ```
 
-Update an event
+Create an event in a specific timezone
 
 ```bash
-curl -X PUT -H "Content-Type: text/calendar; charset=utf-8" -H "If-Match: 21345-324" -H "Authorization: Basic $DAV_AUTH" -d '
-BEGIN:VCALENDAR
-....
-END:VCALENDAR
-' $DAV_URL/calendars/johndoe/default/633bff89b1de69fe40cda18126274fec.ics
+uv run {baseDir}/scripts/cal.py create_event "Team Meeting" --start 2025-06-15T09:00:00-05:00 --end 2025-06-15T10:00:00-05:00 --timezone America/Chicago
 ```
 
-Delete event `633bff89b1de69fe40cda18126274fec.ics` with ETag `21345-324`
+Create an all-day event
 
 ```bash
-curl -X DELETE -H "If-Match: 21345-324" -H "Authorization: $DAV_AUTH" $DAV_URL/calendars/johndoe/633bff89b1de69fe40cda18126274fec.ics
+uv run {baseDir}/scripts/cal.py create_event "Independence Day" --start 2025-07-04 --end 2025-07-04
 ```
