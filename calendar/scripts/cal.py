@@ -134,8 +134,6 @@ class CommandHandler:
                 location=location,
             )
 
-            breakpoint()
-
             return CalendarEvent.from_event(event)
 
 
